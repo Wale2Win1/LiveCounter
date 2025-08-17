@@ -1,115 +1,355 @@
 <!doctype html>
 <html lang="en-GB">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Live Petition Counter</title>
-  <meta name="description" content="Live signature counter for a UK Government petition.">
-  <style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amazing Live Petition Counter</title>
+<meta name="description" content="Gorgeous live signature counter for a UK Government petition with animation, progress, milestones and confetti.">
+<style>
+  /* ========== THEME ========== */
+  :root{
+    --bg:#0b1117;            /* deep slate for drama; switches with system */
+    --card:#0f1722;
+    --fg:#e7eef6;
+    --muted:#98a2ad;
+    --accent:#00e091;        /* can be overridden via URL */
+    --accent-weak: color-mix(in srgb, var(--accent) 20%, #fff 0%);
+    --ring: rgba(0,0,0,.24);
+    --ok: #22c55e;
+    --err: #ef4444;
+  }
+  @media (prefers-color-scheme: light){
     :root{
-      --fg:#0b0b0c; --muted:#6a6f76; --bg:#ffffff; --chip:#f3f4f6;
-      --accent:#005A30; /* gov.uk green */ --err:#b42318;
+      --bg:#ffffff; --card:#f7f8fb; --fg:#0b0b0c; --muted:#6a6f76;
+      --accent:#005A30; --accent-weak: color-mix(in srgb, var(--accent) 12%, #000 88%);
+      --ring: rgba(0,0,0,.08);
     }
-    @media (prefers-color-scheme: dark){
-      :root{ --fg:#e9eef2; --muted:#9aa3ac; --bg:#0b1117; --chip:#111827; --accent:#4ade80; }
-    }
-    html,body{height:100%}
-    body{
-      margin:0;background:var(--bg);color:var(--fg);
-      font:600 18px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-      display:grid;place-items:center;
-    }
-    .card{
-      display:flex;flex-direction:column;gap:.6rem;padding:1.1rem 1.2rem;border-radius:16px;
-      box-shadow:0 6px 20px rgba(0,0,0,.07);
-      background:linear-gradient(180deg, var(--bg), var(--bg)) padding-box,
-                 linear-gradient(135deg, rgba(0,0,0,.08), rgba(0,0,0,.02)) border-box;
-      border:1px solid rgba(0,0,0,.07);min-width:260px;text-align:center;
-    }
-    .row{display:inline-flex;align-items:baseline;justify-content:center;gap:.45rem;white-space:nowrap;}
-    .count{font-weight:800;font-size:clamp(28px, 6vw, 56px);letter-spacing:.5px;}
-    .label{font-weight:600;font-size:clamp(12px, 2.5vw, 16px);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
-    .meta{display:flex;justify-content:center;gap:.6rem;font-weight:500;color:var(--muted);font-size:12px;}
-    .pill{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .55rem;border-radius:999px;background:var(--chip);}
-    .dot{width:.42rem;height:.42rem;border-radius:50%;background:var(--accent);}
-    .error{color:var(--err);font-weight:600;font-size:14px;}
-    .hint{font-size:12px;color:var(--muted);max-width:36rem}
-    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;}
-    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
-  </style>
+  }
+
+  /* ========== LAYOUT ========== */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:
+      radial-gradient(1200px 600px at 20% 0%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 60%),
+      radial-gradient(1000px 600px at 100% 100%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 70%),
+      var(--bg);
+    color:var(--fg);
+    font:600 clamp(16px, 2.2vw, 18px)/1.25 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    display:grid; place-items:center; padding:24px;
+  }
+
+  .wrap{
+    width:min(960px, 100%);
+    display:flex; flex-direction:column; align-items:center; gap:20px;
+  }
+
+  .card{
+    width:100%;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent) 0%, var(--card) 100%);
+    border-radius:20px; padding: clamp(16px, 3vw, 28px);
+    box-shadow:
+      0 12px 50px color-mix(in srgb, var(--accent) 14%, transparent),
+      0 10px 30px var(--ring);
+    border:1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+    display:flex; flex-direction:column; align-items:center; gap: clamp(12px, 2.5vw, 20px);
+    position:relative; overflow:hidden;
+  }
+
+  .title{
+    font-weight:800; letter-spacing:.2px; text-align:center;
+    font-size: clamp(18px, 3vw, 28px);
+    color: var(--fg);
+  }
+
+  /* Counter row */
+  .counter-row{
+    display:flex; align-items:baseline; gap: .6rem; flex-wrap:wrap; justify-content:center;
+  }
+  .count{
+    font-weight:900;
+    /* MASSIVE but responsive */
+    font-size: clamp(48px, 12vw, 140px);
+    line-height: .95;
+    letter-spacing: .02em;
+    /* subtle text glow */
+    text-shadow:
+      0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 10px 30px color-mix(in srgb, var(--accent) 20%, transparent);
+    will-change: contents, transform;
+  }
+  .label{
+    font-weight:700;
+    font-size: clamp(12px, 2.4vw, 20px);
+    color:var(--muted); text-transform:uppercase; letter-spacing:.12em;
+  }
+
+  /* Progress */
+  .progress{
+    width:100%; max-width:820px;
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
+    border-radius:999px; height:14px; position:relative; overflow:hidden;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.08), inset 0 8px 18px rgba(0,0,0,.15);
+  }
+  .bar{
+    height:100%; width:0%;
+    background: linear-gradient(90deg,
+      color-mix(in srgb, var(--accent) 80%, white 0%) 0%,
+      color-mix(in srgb, var(--accent) 60%, white 0%) 100%);
+    border-radius:999px;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent);
+    transition: width .9s cubic-bezier(.2,.8,.2,1);
+  }
+  .progress-meta{
+    width:100%; max-width:820px;
+    display:flex; justify-content:space-between; align-items:center;
+    color:var(--muted); font-weight:600; font-size: clamp(12px, 2.2vw, 14px);
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:.4rem; padding:.28rem .6rem;
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
+    border:1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+    border-radius:999px;
+  }
+  .dot{ width:.58rem; height:.58rem; border-radius:50%; background:var(--accent) }
+  .live.off .dot{ background: #9ca3af }
+
+  .btn{
+    display:inline-flex; gap:.6rem; align-items:center; justify-content:center;
+    border-radius:14px; padding:.7rem 1rem; font-weight:800; letter-spacing:.02em;
+    background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 86%, black 14%));
+    color:#00160b; mix-blend: normal; border:none; cursor:pointer;
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 40%, transparent);
+    transition: transform .12s ease, filter .12s ease;
+    text-decoration:none;
+  }
+  .btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+  .btn:active{ transform: translateY(0px) scale(.99) }
+
+  .error{ color:var(--err); font-weight:700; text-align:center; }
+  .hint{ color:var(--muted); font-weight:600; text-align:center; font-size:.9em }
+
+  /* Compact mode */
+  .compact .card{ gap:10px; padding:16px }
+  .compact .count{ font-size:clamp(38px, 10vw, 96px) }
+  .compact .progress{ height:12px }
+
+  /* Confetti canvas overlays */
+  canvas.confetti{
+    position:absolute; inset:0; pointer-events:none;
+  }
+</style>
 </head>
 <body>
-  <main class="card" id="app" data-petition="734243">
-    <div class="row" aria-live="polite" aria-atomic="true">
-      <span class="count" id="count">–</span>
-      <span class="label">signatures</span>
+  <div class="wrap" id="wrap">
+    <div class="card" id="card">
+      <canvas class="confetti" id="confetti"></canvas>
+
+      <div class="title" id="title">Live Petition Signatures</div>
+
+      <div class="counter-row" aria-live="polite" aria-atomic="true">
+        <span class="count" id="count">–</span>
+        <span class="label" id="label">signatures</span>
+      </div>
+
+      <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+      <div class="progress-meta" aria-hidden="true">
+        <span class="pill live" id="live"><span class="dot"></span><span id="statusText">Live</span></span>
+        <span id="metaText">Updated … · Goal …</span>
+      </div>
+
+      <div id="actions" style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
+        <a class="btn" id="openBtn" target="_blank" rel="noopener">Open petition</a>
+      </div>
+
+      <div class="error" id="err" style="display:none"></div>
+      <div class="hint" id="hint" style="display:none"></div>
     </div>
-    <div class="meta">
-      <span class="pill" id="status"><span class="dot" aria-hidden="true"></span><span>Live</span></span>
-      <span id="updated">Fetching…</span>
-    </div>
-    <p class="sr-only">This block displays the live number of signatures on a UK Government petition.</p>
-    <div id="err" class="error" style="display:none"></div>
-    <div id="hint" class="hint" style="display:none"></div>
-    <noscript>This counter needs JavaScript enabled.</noscript>
-  </main>
+  </div>
 
-  <script>
-  (function(){
-    // Config via URL: ?id=734243&interval=30&proxy=https://YOURWORKER.workers.dev/?id=
-    const root = document.getElementById('app');
-    const params = new URLSearchParams(location.search);
-    const petitionId = params.get('id') || root.getAttribute('data-petition') || '734243';
-    const intervalSec = Math.max(10, parseInt(params.get('interval')||'30', 10) || 30);
-    const proxy = params.get('proxy'); // optional
-    const defaultEndpoint = `https://petition.parliament.uk/petitions/${petitionId}.json`;
-    const endpoint = proxy
-      ? (proxy.includes('{id}') ? proxy.replace('{id}', petitionId) : proxy + petitionId)
-      : defaultEndpoint;
+<script>
+(() => {
+  /* ========= CONFIG FROM URL ========= */
+  const qs = new URLSearchParams(location.search);
+  const petitionId = qs.get('id') || '734243';
+  const intervalSec = Math.max(10, parseInt(qs.get('interval')||'30',10)||30);
+  const accent = qs.get('color');                    // hex like %23005A30
+  const titleParam = qs.get('title');
+  const compact = qs.has('compact');
+  const proxy = qs.get('proxy');
+  const hideBtn = qs.has('hidebtn');
+  const hideLabel = qs.has('hidelabel');
+  const explicitGoal = parseInt(qs.get('goal') || '', 10);
+  const PETITION_URL = `https://petition.parliament.uk/petitions/${petitionId}`;
+  const DEFAULT_ENDPOINT = `${PETITION_URL}.json`;
+  const ENDPOINT = proxy
+    ? (proxy.includes('{id}') ? proxy.replace('{id}', petitionId) : proxy + petitionId)
+    : DEFAULT_ENDPOINT;
 
-    const elCount = document.getElementById('count');
-    const elUpdated = document.getElementById('updated');
-    const elStatus = document.getElementById('status');
-    const elErr = document.getElementById('err');
-    const elHint = document.getElementById('hint');
+  /* ========= ELEMENTS ========= */
+  const root = document.documentElement;
+  const wrap = document.getElementById('wrap');
+  const card = document.getElementById('card');
+  const titleEl = document.getElementById('title');
+  const countEl = document.getElementById('count');
+  const labelEl = document.getElementById('label');
+  const barEl = document.getElementById('bar');
+  const metaTextEl = document.getElementById('metaText');
+  const liveEl = document.getElementById('live');
+  const openBtn = document.getElementById('openBtn');
+  const errEl = document.getElementById('err');
+  const hintEl = document.getElementById('hint');
 
-    function setStatus(ok){
-      elStatus.querySelector('.dot').style.opacity = ok ? '1' : '.35';
-      elStatus.querySelector('span:last-child').textContent = ok ? 'Live' : 'Offline';
+  if (accent) root.style.setProperty('--accent', accent);
+  if (titleParam) titleEl.textContent = titleParam;
+  if (compact) wrap.classList.add('compact');
+  if (hideLabel) labelEl.style.display = 'none';
+  if (hideBtn) openBtn.style.display = 'none';
+  openBtn.href = PETITION_URL;
+
+  /* ========= UTIL ========= */
+  const nf = new Intl.NumberFormat('en-GB');
+  const clamp = (n, a, b) => Math.min(Math.max(n,a), b);
+
+  function autoGoal(n){
+    if (Number.isFinite(explicitGoal) && explicitGoal > 0) return explicitGoal;
+    // Next “nice” rounded goal: nearest 1,000 above current
+    const k = Math.pow(10, Math.max(3, String(Math.floor(Math.abs(n)||1)).length-1));
+    const next = Math.ceil((n+1)/1000)*1000;
+    return Math.max(1000, next);
+  }
+
+  /* ========= ANIMATED COUNT ========= */
+  let currentValue = 0;
+  let displayValue = 0;
+  let lastUpdate = 0;
+
+  function easeOutExpo(t){ return t>=1 ? 1 : 1 - Math.pow(2, -10*t); }
+
+  function animateTo(target, ms=900){
+    const start = performance.now();
+    const from = displayValue;
+    const delta = target - from;
+    function frame(now){
+      const t = clamp((now - start)/ms, 0, 1);
+      displayValue = from + delta * easeOutExpo(t);
+      countEl.textContent = nf.format(Math.round(displayValue));
+      if (t<1) requestAnimationFrame(frame);
+      else displayValue = target;
     }
-    function showError(msg){
-      elErr.style.display='block'; elErr.textContent = msg;
+    requestAnimationFrame(frame);
+    // pulse effect
+    countEl.animate([{transform:'scale(1.00)'},{transform:'scale(1.03)'},{transform:'scale(1.00)'}],
+                    {duration:450, easing:'cubic-bezier(.2,.8,.2,1)'}).play();
+  }
+
+  /* ========= CONFETTI (simple, lightweight) ========= */
+  const confetti = (() => {
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    let particles=[], running=false, rafId=null;
+
+    function resize(){
+      canvas.width = card.clientWidth;
+      canvas.height = card.clientHeight;
     }
-    function showHint(){
-      elHint.style.display='block';
-      elHint.innerHTML = 'If you see a CORS error, deploy a simple proxy and reload with<br><code>?proxy=https://YOURWORKER.workers.dev/?id=</code><br>or<br><code>?proxy=https://YOURWORKER.workers.dev/petition/{id}</code>';
+    window.addEventListener('resize', resize); resize();
+
+    function burst(count=120){
+      for(let i=0;i<count;i++){
+        particles.push({
+          x: Math.random()*canvas.width,
+          y: -10,
+          vx: (Math.random()-0.5)*2.6,
+          vy: Math.random()*2 + 2,
+          size: Math.random()*4 + 2,
+          rot: Math.random()*Math.PI,
+          vr: (Math.random()-0.5)*0.2,
+          hue: (Math.random()*30 - 15),
+          life: Math.random()*120 + 120
+        });
+      }
+      if(!running){ running=true; loop(); }
     }
 
-    async function fetchCount(){
-      const res = await fetch(endpoint, { cache: 'no-store' });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      const j = await res.json();
-      const n = j && j.data && j.data.attributes && j.data.attributes.signature_count;
-      if(typeof n !== 'number') throw new Error('signature_count missing');
-      elCount.textContent = new Intl.NumberFormat('en-GB').format(n);
-      elUpdated.textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-      setStatus(true);
-      elErr.style.display='none'; elHint.style.display='none';
+    function loop(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      particles = particles.filter(p=>p.life>0);
+      for(const p of particles){
+        p.x+=p.vx; p.y+=p.vy; p.vy+=0.02; p.rot+=p.vr; p.life--;
+        ctx.save();
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = `hsl(${p.hue + 150}, 80%, 60%)`;
+        ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+        ctx.restore();
+      }
+      if(particles.length){ rafId=requestAnimationFrame(loop); }
+      else { running=false; cancelAnimationFrame(rafId); }
     }
-
-    function tick(){
-      fetchCount().catch(err => {
-        console.error(err);
-        setStatus(false);
-        elUpdated.textContent = 'Update failed · retrying…';
-        showError(err.message || String(err));
-        showHint();
-      });
-    }
-
-    tick();
-    setInterval(tick, intervalSec * 1000);
+    return { burst };
   })();
-  </script>
+
+  /* ========= FETCH & UPDATE ========= */
+  function setLive(ok){
+    liveEl.classList.toggle('off', !ok);
+    liveEl.querySelector('#statusText').textContent = ok ? 'Live' : 'Offline';
+  }
+  function showError(msg){
+    errEl.style.display='block'; errEl.textContent = msg;
+    hintEl.style.display='block';
+    hintEl.innerHTML = 'If this keeps failing, deploy a tiny proxy and reload with<br><code>?proxy=https://YOURWORKER.workers.dev/?id=</code><br>or<br><code>?proxy=https://YOURWORKER.workers.dev/petition/{id}</code>';
+  }
+  function hideError(){
+    errEl.style.display='none'; hintEl.style.display='none';
+  }
+
+  async function fetchCount(){
+    const res = await fetch(ENDPOINT, { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const j = await res.json();
+    const n = j?.data?.attributes?.signature_count;
+    if(typeof n !== 'number') throw new Error('signature_count missing');
+    return n;
+  }
+
+  function updateUI(n){
+    const goal = autoGoal(n);
+    const pct = clamp(n/goal*100, 0, 100);
+    barEl.style.width = pct + '%';
+
+    const now = new Date();
+    metaTextEl.textContent = `Updated ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · Goal ${nf.format(goal)} (${pct.toFixed(1)}%)`;
+
+    // Confetti if crossed a new thousand since last update
+    const prevK = Math.floor(currentValue/1000), nextK = Math.floor(n/1000);
+    if(nextK > prevK && currentValue>0) confetti.burst(160);
+
+    currentValue = n;
+    animateTo(n);
+    hideError();
+    setLive(true);
+  }
+
+  function tick(){
+    fetchCount().then(n => {
+      lastUpdate = Date.now();
+      updateUI(n);
+    }).catch(err => {
+      console.error(err);
+      setLive(false);
+      showError(err.message || String(err));
+    });
+  }
+
+  // Initial content
+  titleEl.textContent = titleParam || 'Live Petition Signatures';
+  document.title = (titleParam || 'Live Petition Signatures') + ' — ' + petitionId;
+
+  // Kick off
+  tick();
+  setInterval(tick, intervalSec*1000);
+
+})();
+</script>
 </body>
 </html>
