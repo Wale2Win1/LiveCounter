@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Petition Counter</title>
+  <meta name="description" content="Live signature counter for a UK Government petition.">
+  <style>
+    :root{
+      --fg:#0b0b0c; --muted:#6a6f76; --bg:#ffffff; --chip:#f3f4f6;
+      --accent:#005A30; /* gov.uk green */ --err:#b42318;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{ --fg:#e9eef2; --muted:#9aa3ac; --bg:#0b1117; --chip:#111827; --accent:#4ade80; }
+    }
+    html,body{height:100%}
+    body{
+      margin:0;background:var(--bg);color:var(--fg);
+      font:600 18px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      display:grid;place-items:center;
+    }
+    .card{
+      display:flex;flex-direction:column;gap:.6rem;padding:1.1rem 1.2rem;border-radius:16px;
+      box-shadow:0 6px 20px rgba(0,0,0,.07);
+      background:linear-gradient(180deg, var(--bg), var(--bg)) padding-box,
+                 linear-gradient(135deg, rgba(0,0,0,.08), rgba(0,0,0,.02)) border-box;
+      border:1px solid rgba(0,0,0,.07);min-width:260px;text-align:center;
+    }
+    .row{display:inline-flex;align-items:baseline;justify-content:center;gap:.45rem;white-space:nowrap;}
+    .count{font-weight:800;font-size:clamp(28px, 6vw, 56px);letter-spacing:.5px;}
+    .label{font-weight:600;font-size:clamp(12px, 2.5vw, 16px);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+    .meta{display:flex;justify-content:center;gap:.6rem;font-weight:500;color:var(--muted);font-size:12px;}
+    .pill{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .55rem;border-radius:999px;background:var(--chip);}
+    .dot{width:.42rem;height:.42rem;border-radius:50%;background:var(--accent);}
+    .error{color:var(--err);font-weight:600;font-size:14px;}
+    .hint{font-size:12px;color:var(--muted);max-width:36rem}
+    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <main class="card" id="app" data-petition="734243">
+    <div class="row" aria-live="polite" aria-atomic="true">
+      <span class="count" id="count">–</span>
+      <span class="label">signatures</span>
+    </div>
+    <div class="meta">
+      <span class="pill" id="status"><span class="dot" aria-hidden="true"></span><span>Live</span></span>
+      <span id="updated">Fetching…</span>
+    </div>
+    <p class="sr-only">This block displays the live number of signatures on a UK Government petition.</p>
+    <div id="err" class="error" style="display:none"></div>
+    <div id="hint" class="hint" style="display:none"></div>
+    <noscript>This counter needs JavaScript enabled.</noscript>
+  </main>
+
+  <script>
+  (function(){
+    // Config via URL: ?id=734243&interval=30&proxy=https://YOURWORKER.workers.dev/?id=
+    const root = document.getElementById('app');
+    const params = new URLSearchParams(location.search);
+    const petitionId = params.get('id') || root.getAttribute('data-petition') || '734243';
+    const intervalSec = Math.max(10, parseInt(params.get('interval')||'30', 10) || 30);
+    const proxy = params.get('proxy'); // optional
+    const defaultEndpoint = `https://petition.parliament.uk/petitions/${petitionId}.json`;
+    const endpoint = proxy
+      ? (proxy.includes('{id}') ? proxy.replace('{id}', petitionId) : proxy + petitionId)
+      : defaultEndpoint;
+
+    const elCount = document.getElementById('count');
+    const elUpdated = document.getElementById('updated');
+    const elStatus = document.getElementById('status');
+    const elErr = document.getElementById('err');
+    const elHint = document.getElementById('hint');
+
+    function setStatus(ok){
+      elStatus.querySelector('.dot').style.opacity = ok ? '1' : '.35';
+      elStatus.querySelector('span:last-child').textContent = ok ? 'Live' : 'Offline';
+    }
+    function showError(msg){
+      elErr.style.display='block'; elErr.textContent = msg;
+    }
+    function showHint(){
+      elHint.style.display='block';
+      elHint.innerHTML = 'If you see a CORS error, deploy a simple proxy and reload with<br><code>?proxy=https://YOURWORKER.workers.dev/?id=</code><br>or<br><code>?proxy=https://YOURWORKER.workers.dev/petition/{id}</code>';
+    }
+
+    async function fetchCount(){
+      const res = await fetch(endpoint, { cache: 'no-store' });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const j = await res.json();
+      const n = j && j.data && j.data.attributes && j.data.attributes.signature_count;
+      if(typeof n !== 'number') throw new Error('signature_count missing');
+      elCount.textContent = new Intl.NumberFormat('en-GB').format(n);
+      elUpdated.textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      setStatus(true);
+      elErr.style.display='none'; elHint.style.display='none';
+    }
+
+    function tick(){
+      fetchCount().catch(err => {
+        console.error(err);
+        setStatus(false);
+        elUpdated.textContent = 'Update failed · retrying…';
+        showError(err.message || String(err));
+        showHint();
+      });
+    }
+
+    tick();
+    setInterval(tick, intervalSec * 1000);
+  })();
+  </script>
+</body>
+</html>
