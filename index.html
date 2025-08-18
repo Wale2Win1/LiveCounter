@@ -4,40 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Live Petition Counter</title>
-<meta name="description" content="Gorgeous live counter for a UK Government petition with animation, progress, growth, sparkline and sharing.">
-<meta property="og:title" content="Live Petition Counter">
-<meta property="og:description" content="See signatures rise in real time and add yours now.">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-
+<meta name="description" content="Live signature counter for a UK Government petition.">
 <style>
   :root{
     --bg:#0b1117; --card:#0f1722; --fg:#e7eef6; --muted:#9aa3ac;
-    --accent:#00e091; --err:#ef4444; --ring:rgba(0,0,0,.28);
+    --accent:#005A30; --err:#ef4444; --ring:rgba(0,0,0,.28);
   }
   @media (prefers-color-scheme: light){
-    :root{ --bg:#fff; --card:#f7f8fb; --fg:#111; --muted:#6a6f76; --accent:#005A30; --ring:rgba(0,0,0,.08) }
+    :root{ --bg:#fff; --card:#f7f8fb; --fg:#111; --muted:#6a6f76; --ring:rgba(0,0,0,.08) }
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0;background:
-      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 60%),
-      radial-gradient(1000px 600px at 120% 120%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 70%),
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+      radial-gradient(1000px 600px at 120% 120%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
       var(--bg);
     color:var(--fg);
     font:600 clamp(16px,2.2vw,18px)/1.25 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
     display:grid;place-items:center;padding:24px;
   }
-  .wrap{width:min(980px,100%);display:flex;flex-direction:column;gap:18px;align-items:center}
+  .wrap{width:min(820px,100%);display:flex;flex-direction:column;align-items:center;gap:18px}
   .card{
-    width:100%; background:linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), var(--card));
+    width:100%; background:linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent), var(--card));
     border:1px solid color-mix(in srgb, var(--accent) 14%, transparent);
     border-radius:22px; padding:clamp(16px,3vw,28px);
     box-shadow:0 12px 50px color-mix(in srgb, var(--accent) 14%, transparent), 0 10px 30px var(--ring);
-    display:flex; flex-direction:column; gap:clamp(12px,2.5vw,22px); align-items:center; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+    position:relative; overflow:hidden;
   }
-  .title{font-weight:800;letter-spacing:.2px;text-align:center;font-size:clamp(18px,3vw,28px)}
+
+  .title{font-weight:800;text-align:center;font-size:clamp(18px,3vw,28px)}
   .counter-row{display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap; justify-content:center}
   .count{
     font-weight:900; font-size:clamp(56px,12vw,150px); line-height:.9; letter-spacing:.02em;
@@ -45,33 +42,29 @@
     will-change:contents,transform;
   }
   .label{font-weight:700;font-size:clamp(12px,2.4vw,20px);color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-  .progress{width:100%;max-width:860px; height:14px; background:color-mix(in srgb, var(--fg) 6%, transparent);
-    border-radius:999px; overflow:hidden; box-shadow:inset 0 1px 1px rgba(255,255,255,.08), inset 0 8px 18px rgba(0,0,0,.15)}
-  .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#3cf); border-radius:999px;
-    box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent); transition:width .9s cubic-bezier(.2,.8,.2,1)}
-  .meta{width:100%;max-width:860px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);
-    font-weight:600;font-size:clamp(12px,2.2vw,14px); gap:10px; flex-wrap:wrap}
+
+  .meta{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-weight:600;font-size:clamp(12px,2.2vw,14px)}
   .pill{display:inline-flex;align-items:center;gap:.4rem;padding:.28rem .6rem;border-radius:999px;
     background: color-mix(in srgb, var(--fg) 6%, transparent); border:1px solid color-mix(in srgb, var(--fg) 10%, transparent)}
   .dot{width:.58rem;height:.58rem;border-radius:50%;background:var(--accent)}
   .live.off .dot{background:#9ca3af}
+
   .actions{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
   .btn{display:inline-flex;gap:.6rem;align-items:center;justify-content:center;border-radius:14px;padding:.68rem 1rem;
     font-weight:800; letter-spacing:.02em; background:linear-gradient(180deg,var(--accent),color-mix(in srgb, var(--accent) 86%, black 14%));
     color:#00160b; border:none; cursor:pointer; box-shadow:0 10px 24px color-mix(in srgb, var(--accent) 40%, transparent); text-decoration:none}
   .btn:hover{transform:translateY(-1px)} .btn:active{transform:translateY(0) scale(.99)}
+
   .share{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
   .share button{border:1px solid color-mix(in srgb, var(--fg) 10%, transparent); background:color-mix(in srgb, var(--fg) 6%, transparent);
     color:var(--fg); border-radius:10px; padding:.5rem .8rem; font-weight:700; cursor:pointer}
+
   .error{color:var(--err);font-weight:700;text-align:center}
   .hint{color:var(--muted);font-weight:600;text-align:center;font-size:.9em}
-  .sparkline{width:100%;max-width:860px;height:56px; border-radius:10px; background:color-mix(in srgb, var(--fg) 4%, transparent);
-    border:1px solid color-mix(in srgb, var(--fg) 10%, transparent); overflow:hidden}
-  .compact .card{gap:10px;padding:16px} .compact .count{font-size:clamp(42px,10vw,110px)} .compact .progress{height:12px}
+
+  .compact .count{font-size:clamp(42px,10vw,110px)}
   canvas.confetti{position:absolute; inset:0; pointer-events:none}
-  @media (prefers-reduced-motion: reduce){
-    .bar{transition:none}
-  }
+  @media (prefers-reduced-motion: reduce){ .btn{transition:none} }
 </style>
 </head>
 <body>
@@ -86,15 +79,11 @@
         <span class="label" id="label">signatures</span>
       </div>
 
-      <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
-
       <div class="meta">
         <span class="pill live" id="live"><span class="dot"></span><span id="statusText">Live</span></span>
-        <span id="metaText">Updated … · Goal …</span>
-        <span id="growth">+0 today · +0 last hr</span>
+        <span id="updated">Fetching…</span>
+        <span id="growth">+0 last hr</span>
       </div>
-
-      <canvas id="spark" class="sparkline" aria-hidden="true"></canvas>
 
       <div class="actions">
         <a class="btn" id="openBtn" target="_blank" rel="noopener">Open petition</a>
@@ -105,26 +94,18 @@
         <button id="waBtn">WhatsApp</button>
         <button id="twBtn">X/Twitter</button>
         <button id="copyBtn">Copy link</button>
-        <button id="qrBtn">QR code</button>
       </div>
 
       <div class="error" id="err" style="display:none"></div>
       <div class="hint" id="hint" style="display:none"></div>
-
-      <div id="qrPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center">
-        <div style="background:#fff;color:#111;padding:20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4)">
-          <canvas id="qr"></canvas><br>
-          <button onclick="document.getElementById('qrPopup').style.display='none'">Close</button>
-        </div>
-      </div>
     </div>
   </div>
 
-<!-- lightweight QR code generator -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 (() => {
-  /* ===== Config via URL ===== */
+  /* ===== Config via URL =====
+     ?id=734243&interval=30&title=Your%20Title&color=%23005A30&compact=1&proxy=https://YOURWORKER.workers.dev/?id=
+  */
   const qs = new URLSearchParams(location.search);
   const petitionId = qs.get('id') || '734243';
   const intervalSec = Math.max(10, parseInt(qs.get('interval')||'30',10)||30);
@@ -132,9 +113,9 @@
   const titleParam = qs.get('title');
   const compact = qs.has('compact');
   const proxy = qs.get('proxy'); // optional, e.g. https://YOURWORKER.workers.dev/?id=
-  const explicitGoal = parseInt(qs.get('goal') || '', 10);
-  const hidebtn = qs.has('hidebtn');
   const hidelabel = qs.has('hidelabel');
+  const hidebtn = qs.has('hidebtn');
+  const hideShare = qs.has('hideshare');
 
   const PETITION_URL = `https://petition.parliament.uk/petitions/${petitionId}`;
   const DEFAULT_ENDPOINT = `${PETITION_URL}.json`;
@@ -149,87 +130,63 @@
   const titleEl = document.getElementById('title');
   const countEl = document.getElementById('count');
   const labelEl = document.getElementById('label');
-  const barEl = document.getElementById('bar');
-  const metaTextEl = document.getElementById('metaText');
+  const updatedEl = document.getElementById('updated');
+  const growthEl = document.getElementById('growth');
   const liveEl = document.getElementById('live');
   const errEl = document.getElementById('err');
   const hintEl = document.getElementById('hint');
-  const growthEl = document.getElementById('growth');
   const openBtn = document.getElementById('openBtn');
-  const spark = document.getElementById('spark');
-  const qrPopup = document.getElementById('qrPopup');
 
   if (accent) root.style.setProperty('--accent', accent);
   if (titleParam) titleEl.textContent = titleParam;
   if (compact) wrap.classList.add('compact');
   if (hidelabel) labelEl.style.display = 'none';
   if (hidebtn) openBtn.style.display = 'none';
+  if (hideShare) document.querySelector('.share').style.display = 'none';
   openBtn.href = PETITION_URL;
 
-  /* ===== Utils & State ===== */
+  /* ===== State & Utils ===== */
   const nf = new Intl.NumberFormat('en-GB');
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let currentValue = 0;
   let displayValue = 0;
-  let lastFetchOk = false;
 
-  // persistent samples for growth/sparkline (LocalStorage)
+  // localStorage samples (24h) for last-hour growth
   const LS_KEY = `petition_samples_${petitionId}`;
-  const MAX_AGE_MS = 24*60*60*1000; // 24h
+  const MAX_AGE_MS = 24*60*60*1000;
   function loadSamples(){
     try{ return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }catch{ return []; }
   }
   function saveSamples(samples){
     try{ localStorage.setItem(LS_KEY, JSON.stringify(samples)); }catch{}
   }
-
   function pushSample(count){
     const now = Date.now();
     let s = loadSamples();
     s.push([now, count]);
-    // keep every ~5 min by thinning if too dense
     s = s.filter(([t]) => now - t <= MAX_AGE_MS);
-    // downsample to ~300 points max
     if (s.length > 300) s = s.filter((_,i) => i%2===0);
     saveSamples(s);
   }
-
-  function getMidnightBaseline(samples){
-    const d = new Date(); d.setHours(0,0,0,0);
-    const ts = d.getTime();
-    // find earliest sample after midnight; fallback to earliest overall
-    let after = samples.find(([t]) => t >= ts);
-    if (after) return after[1];
-    return samples.length ? samples[0][1] : 0;
-  }
-
   function getHourAgo(samples){
     const cutoff = Date.now() - 60*60*1000;
-    // nearest sample at/just before cutoff
     let closest = samples[0];
-    for (const p of samples) if (p[0] <= cutoff) closest = p; else break;
+    for (const p of samples) { if (p[0] <= cutoff) closest = p; else break; }
     return closest ? closest[1] : (samples[0]?.[1] || 0);
-  }
-
-  function autoGoal(n){
-    if (Number.isFinite(explicitGoal) && explicitGoal > 0) return explicitGoal;
-    return Math.ceil((n+1)/1000)*1000; // next 1k
   }
 
   function setLive(ok){
     liveEl.classList.toggle('off', !ok);
     document.getElementById('statusText').textContent = ok ? 'Live' : 'Offline';
   }
-
   function showError(msg){
     errEl.style.display='block'; errEl.textContent = msg;
     hintEl.style.display='block';
     hintEl.innerHTML = 'If this keeps failing, add a proxy and reload with<br><code>?proxy=https://YOURWORKER.workers.dev/?id=</code><br>or<br><code>?proxy=https://YOURWORKER.workers.dev/petition/{id}</code>';
   }
-
   function hideError(){ errEl.style.display='none'; hintEl.style.display='none'; }
 
-  /* ===== Animated count ===== */
+  /* ===== Animated number ===== */
   function easeOutExpo(t){ return t>=1 ? 1 : 1 - Math.pow(2, -10*t); }
   function animateTo(target, ms=900){
     if (prefersReducedMotion){ countEl.textContent = nf.format(target); displayValue = target; return; }
@@ -247,7 +204,7 @@
                     {duration:450,easing:'cubic-bezier(.2,.8,.2,1)'});
   }
 
-  /* ===== Confetti (tiny) ===== */
+  /* ===== Confetti ===== */
   const confetti = (() => {
     const canvas = document.getElementById('confetti');
     const ctx = canvas.getContext('2d');
@@ -284,37 +241,8 @@
     return { burst };
   })();
 
-  /* ===== Sparkline (24h) ===== */
-  function drawSparkline(samples){
-    const ctx = spark.getContext('2d');
-    const W = spark.clientWidth, H = spark.clientHeight;
-    spark.width = W; spark.height = H;
-    ctx.clearRect(0,0,W,H);
-    if (!samples.length) return;
-    const now = Date.now();
-    const start = now - MAX_AGE_MS;
-    const pts = samples.map(([t,v]) => [ (t-start)/MAX_AGE_MS * (W-10) + 5, v ]);
-    const min = Math.min(...pts.map(p=>p[1]));
-    const max = Math.max(...pts.map(p=>p[1]));
-    const range = Math.max(1, max - min);
-    const ys = pts.map(([x,v]) => [x, H - ((v - min) / range) * (H-10) - 5]);
-
-    // background fill
-    ctx.beginPath();
-    ys.forEach(([x,y],i)=>{ if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
-    ctx.lineTo(W-5,H-5); ctx.lineTo(5,H-5); ctx.closePath();
-    ctx.fillStyle = 'rgba(0,0,0,.08)';
-    ctx.fill();
-
-    // line
-    ctx.beginPath(); ctx.lineWidth = 2;
-    ys.forEach(([x,y],i)=>{ if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00e091';
-    ctx.stroke();
-  }
-
-  /* ===== Fetch logic with auto fallback ===== */
-  async function fetchCountOnce(url){
+  /* ===== Networking ===== */
+  async function fetchOnce(url){
     const res = await fetch(url, { cache:'no-store' });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const j = await res.json();
@@ -322,14 +250,12 @@
     if(typeof n !== 'number') throw new Error('signature_count missing');
     return n;
   }
-
   async function fetchCount(){
-    // Try primary; if it fails and a proxy param exists but we weren’t using it, try proxy fallback automatically
-    try {
-      return await fetchCountOnce(ENDPOINT);
-    } catch (e) {
-      if (proxy && !ENDPOINT.startsWith(proxy)) {
-        try { return await fetchCountOnce(proxy.includes('{id}') ? proxy.replace('{id}', petitionId) : proxy + petitionId); }
+    try{
+      return await fetchOnce(ENDPOINT);
+    }catch(e){
+      if (proxy && !ENDPOINT.startsWith(proxy)){
+        try{ return await fetchOnce(proxy.includes('{id}') ? proxy.replace('{id}', petitionId) : proxy + petitionId); }
         catch { throw e; }
       }
       throw e;
@@ -337,71 +263,48 @@
   }
 
   function updateUI(n){
-    // progress
-    const goal = autoGoal(n);
-    const pct = Math.min(n/goal*100, 100);
-    barEl.style.width = pct + '%';
-
-    // meta
     const now = new Date();
-    metaTextEl.textContent = `Updated ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · Goal ${nf.format(goal)} (${pct.toFixed(1)}%)`;
+    updatedEl.textContent = 'Updated ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 
-    // growth
-    let samples = loadSamples();
-    pushSample(n); samples = loadSamples();
-    const todayBase = getMidnightBaseline(samples);
+    pushSample(n);
+    const samples = loadSamples();
     const hourAgo = getHourAgo(samples);
-    growthEl.textContent = `+${nf.format(Math.max(0,n - todayBase))} today · +${nf.format(Math.max(0,n - hourAgo))} last hr`;
+    const deltaHour = Math.max(0, n - hourAgo);
+    growthEl.textContent = `+${new Intl.NumberFormat('en-GB').format(deltaHour)} last hr`;
 
-    // sparkline
-    drawSparkline(samples);
-
-    // counter
     if(n !== currentValue){
       if (Math.floor(n/1000) > Math.floor(currentValue/1000) && currentValue>0) confetti.burst(180);
       currentValue = n;
       animateTo(n);
     }
 
-    hideError(); setLive(true); lastFetchOk = true;
+    hideError(); setLive(true);
   }
 
-  // Backoff timers
   let delay = intervalSec*1000;
-  function scheduleNext(ok){
-    delay = ok ? intervalSec*1000 : Math.min(delay*2, 300000); // up to 5 minutes
-    setTimeout(tick, delay);
-  }
+  function setLive(ok){ liveEl.classList.toggle('off', !ok); document.getElementById('statusText').textContent = ok ? 'Live' : 'Offline'; }
+  function scheduleNext(ok){ delay = ok ? intervalSec*1000 : Math.min(delay*2, 300000); setTimeout(tick, delay); }
 
   async function tick(){
-    try{
-      const n = await fetchCount();
-      updateUI(n);
-      scheduleNext(true);
-    }catch(e){
-      console.error(e);
-      setLive(false);
-      showError('Update failed: ' + (e?.message || e));
-      scheduleNext(false);
-    }
+    try{ const n = await fetchCount(); updateUI(n); scheduleNext(true); }
+    catch(e){ console.error(e); setLive(false); showError('Update failed: ' + (e?.message || e)); scheduleNext(false); }
   }
 
-  // Initial
-  if (titleParam) document.title = `${titleParam} — ${petitionId}`;
+  // Init
+  if (titleParam) { titleEl.textContent = titleParam; document.title = titleParam; }
   openBtn.href = PETITION_URL;
   tick();
 
-  /* ===== Share UI ===== */
-  const petitionUrl = PETITION_URL;
-  document.getElementById('fbBtn').onclick = () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(petitionUrl)}`,'_blank');
-  document.getElementById('waBtn').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent('Please sign: ' + petitionUrl)}`,'_blank');
-  document.getElementById('twBtn').onclick = () => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(petitionUrl)}&text=${encodeURIComponent('Please sign this petition')}`,'_blank');
-  document.getElementById('copyBtn').onclick = () => navigator.clipboard.writeText(petitionUrl).then(()=>alert('Link copied!'));
-  document.getElementById('qrBtn').onclick = () => {
-    const c = document.getElementById('qr'); QRCode.toCanvas(c, petitionUrl, { width: 240 });
-    qrPopup.style.display = 'grid';
-  };
-
+  /* ===== Share buttons ===== */
+  const url = PETITION_URL;
+  document.getElementById('fbBtn').onclick = () =>
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,'_blank');
+  document.getElementById('waBtn').onclick = () =>
+    window.open(`https://wa.me/?text=${encodeURIComponent('Please sign: ' + url)}`,'_blank');
+  document.getElementById('twBtn').onclick = () =>
+    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Please sign this petition')}`,'_blank');
+  document.getElementById('copyBtn').onclick = () =>
+    navigator.clipboard.writeText(url).then(()=>alert('Link copied!'));
 })();
 </script>
 </body>
